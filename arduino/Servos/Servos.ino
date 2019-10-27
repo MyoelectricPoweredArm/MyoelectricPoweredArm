@@ -1,4 +1,11 @@
 #include <Servo.h>
+#include "MyoController.h"
+
+#define FIST_PIN 4
+#define WAVEIN_PIN 5
+#define WAVEOUT_PIN 6
+#define FINGERSSPREAD_PIN 7
+#define DOUBLETAP_PIN 8
 
 // create servo object to control a servo
 Servo servoI; //Index finger  
@@ -9,6 +16,8 @@ Servo servoT; //Thumb
 // twelve servo objects can be created on most boards
 
 bool isTest = false; //boolean to determine if test functionality should be enabled
+
+MyoController myo = MyoController();
 
 void setup() {
   Serial.begin(9600);
@@ -23,12 +32,21 @@ void setup() {
     while (Serial.available()== 0){
       }
     char testInput = Serial.read();
-    if(testInput == 'y' || testInput == 'Y'){
+    if(tolower(testInput) == 'y'){
       isTest = true;
       Serial.print("\nTest functionality enabled");
     }
-    else if(testInput == 'n' || testInput == 'N'){
+    else if(tolower(testInput) == 'n'){
       isTest = false;
+
+      pinMode(FIST_PIN, OUTPUT);
+      pinMode(WAVEIN_PIN, OUTPUT);
+      pinMode(WAVEOUT_PIN, OUTPUT);
+      pinMode(FINGERSSPREAD_PIN, OUTPUT);
+      pinMode(DOUBLETAP_PIN, OUTPUT);
+      
+      myo.initMyo();
+
       Serial.print("\nTest functionality disabled");
     }
   
@@ -37,27 +55,33 @@ void setup() {
 void loop() {
     //No testing functionality. Opening and closing hand only
     if(!isTest){ 
-      Serial.print("\nenter 'o' to open hand or 'c' to close hand");
-      while (Serial.available()== 0)//wait for user to enter any value to run servo
-      {
-      }
+      Serial.print("\nPlug in and calibrate the Myo to begin testing");
 
-      char input = Serial.read();
-      if(input =='o' || input == 'O'){
-        Serial.print("\nOpening hand");
-        servoI.write(0);
-        servoM.write(0);
-        servoR.write(0);
-        servoP.write(0);
-        servoT.write(0);
-      }else if(input == 'c' || input == 'C'){
-        Serial.print("\nClosing hand");
-        servoI.write(90);
-        servoM.write(90);
-        servoR.write(90);
-        servoP.write(90);
-        servoT.write(90);
-      }
+      myo.updatePose();
+      switch ( myo.getCurrentPose() ) {
+        case rest:
+          digitalWrite(FIST_PIN,LOW); 
+          digitalWrite(WAVEIN_PIN,LOW);
+          digitalWrite(WAVEOUT_PIN,LOW);
+          digitalWrite(FINGERSSPREAD_PIN,LOW);
+          digitalWrite(DOUBLETAP_PIN,LOW);
+          break;
+        case fist:
+          digitalWrite(FIST_PIN,HIGH);
+          break;
+        case waveIn:
+          digitalWrite(WAVEIN_PIN,HIGH);
+          break;
+        case waveOut:
+          digitalWrite(WAVEOUT_PIN,HIGH);
+          break;
+        case fingersSpread:
+          digitalWrite(FINGERSSPREAD_PIN,HIGH);
+          break;
+        case doubleTap:
+          digitalWrite(DOUBLETAP_PIN,HIGH);
+          break;
+      } 
      }
      //Testing functionality. Opening and closing hand, as well as individual fingers
      else if(isTest){ 
@@ -65,21 +89,21 @@ void loop() {
       //wait for user to enter any value to run servo
       while (Serial.available()== 0){}
       char input = Serial.read();
-      if(input =='o' || input == 'O'){
+      if(tolower(input) =='o'){
         Serial.print("\nOpening hand");
         servoI.write(0);
         servoM.write(0);
         servoR.write(0);
         servoP.write(0);
         servoT.write(0);
-      }else if(input == 'c' || input == 'C'){
+      }else if(tolower(input) == 'c') {
         Serial.print("\nClosing hand");
         servoI.write(90);
         servoM.write(90);
         servoR.write(90);
         servoP.write(90);
         servoT.write(90);
-      }else if(input == 'i' || input == 'I'){
+      }else if(tolower(input) == 'i') {
         if(servoI.read() > 45){
           Serial.print("\nOpening index finger");
           servoI.write(0);
@@ -88,7 +112,7 @@ void loop() {
           servoI.write(90);
         }
       }
-      else if(input == 'm' || input == 'M'){
+      else if(tolower(input) == 'm'){
         if(servoM.read() > 45){
           Serial.print("\nOpening middle finger");
           servoM.write(0);
@@ -97,7 +121,7 @@ void loop() {
           servoM.write(90);
         }
       }
-      else if(input == 'r' || input == 'R'){
+      else if(tolower(input) == 'r'){
         if(servoR.read() > 45){
           Serial.print("\nOpening ring finger");
           servoR.write(0);
@@ -106,7 +130,7 @@ void loop() {
           servoR.write(90);
         }
       }
-      else if(input == 'p' || input == 'P'){
+      else if(tolower(input) == 'p'){
         if(servoP.read() > 45){
           Serial.print("\nOpening pinky finger");
           servoP.write(0);
@@ -115,7 +139,7 @@ void loop() {
           servoP.write(90);
         }
       }
-      else if(input == 't' || input == 'T'){
+      else if(tolower(input) == 't'){
         if(servoT.read() > 45){
           Serial.print("\nOpening thumb");
           servoT.write(0);
