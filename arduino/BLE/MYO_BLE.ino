@@ -1,8 +1,8 @@
 /**
  * @file    MYO_EMG
- * @author  Kira Wadden
- * @date    August 2018
- * @brief   Communicating between the Myo armband and ESP32 via BLE to receive EMG notifications
+ * @author  Alex Fricke, Marwan A Rahman, Martina Nobile, William Kwong (original code from Kira Wadden)
+ * @date    Nov 2019
+ * @brief   Communicating between the Myo armband and ESP32 via BLE to receive Gesture classifier notifications
  */
 
 #include <BLEDevice.h>
